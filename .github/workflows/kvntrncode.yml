@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
+
+import {ERC721A} from "erc721a/contracts/ERC721A.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+error MintLimitExceeded();
+
+contract SampleNFT is ERC721A, Ownable {
+    uint256 public constant MINT_LIMIT = 10;
+
+    string public _baseTokenURI = "";
+
+    constructor() ERC721A("Sample Scroll NFT", "SAMPLE") {}
+
+    function mint(uint256 qty) external {
+        if (qty > MINT_LIMIT) revert MintLimitExceeded();
+        _mint(msg.sender, qty);
+    }
+
+    // =========================================================================
+    //                                 Metadata
+    // =========================================================================
+
+    function setBaseURI(string calldata baseURI) external onlyOwner {
+        _baseTokenURI = baseURI;
+    }
+
+    function _baseURI() internal view override returns (string memory) {
+        return _baseTokenURI;
+    }
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        if (!_exists(tokenId)) revert URIQueryForNonexistentToken();
+
+        string memory baseURI = _baseURI();
+        return bytes(baseURI).length != 0 ? baseURI : "";
+    }
+}
